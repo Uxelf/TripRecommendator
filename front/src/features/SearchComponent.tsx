@@ -1,21 +1,23 @@
 "use client";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 
-interface SearchBoxProps {
-  searchText: string;
-  setSearchText: (text: string) => void;
-  onSearch: () => void;
+interface Props {
+  onSearch: (query: string) => void;
+  status: "idle" | "loading" | "error" | "success";
+  error: string | null;
 }
 
-const SearchBox: React.FC<SearchBoxProps> = ({
-  searchText,
-  setSearchText,
-  onSearch,
-}) => {
+export default function SearchComponent({ onSearch, status, error }: Props) {
+  const [text, setText] = useState("");
+
+  const handleSubmit = () => {
+    if (text.trim() !== "") onSearch(text);
+  };
+
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setSearchText(event.target.value);
+    setText(event.target.value);
 
     const textarea = textareaRef.current;
     if (!textarea) return;
@@ -31,15 +33,26 @@ const SearchBox: React.FC<SearchBoxProps> = ({
   const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === "Enter") {
       event.preventDefault();
-      onSearch();
+      handleSubmit();
     }
   };
 
   return (
-    <div className="w-full p-8 max-w-4xl my-auto">
+    <div className="w-full p-8 max-w-4xl m-auto flex flex-col">
+      { status == "idle" &&
+        <h1 className="text-4xl mb-4 text-center text-white">Find now your perfect place</h1>
+      }
+      { status == "loading" && 
+        <h1 className="text-4xl mb-4 text-center text-gray-400">Searching, like a lot</h1>
+      }
+      {
+        status == "error" &&
+        <h1 className="text-4xl mb-4 text-center text-red-400">{error}</h1>
+      }
       <textarea
+        disabled={status === "loading"}
         ref={textareaRef}
-        value={searchText}
+        value={text}
         placeholder="Where 2 go?"
         onChange={handleChange}
         onKeyDown={handleKeyDown}
@@ -50,5 +63,3 @@ const SearchBox: React.FC<SearchBoxProps> = ({
     </div>
   );
 };
-
-export default SearchBox;
