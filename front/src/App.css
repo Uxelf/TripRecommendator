@@ -1,0 +1,31 @@
+.text-appear {
+    animation: fade-in 100ms ease-out forwards;
+}
+
+.text-disappear {
+    animation: fade-out 100ms ease-out forwards;
+}
+
+@keyframes fade-in {
+    0% {
+        transform: translateY(-40px);
+        opacity: 0;
+    }
+
+    100% {
+        transform: translateY(0px);
+        opacity: 100;
+    }
+}
+
+@keyframes fade-out {
+    0% {
+        transform: translateY(0px);
+        opacity: 100;
+    }
+
+    100% {
+        transform: translateY(-40px);
+        opacity: 0;
+    }
+}

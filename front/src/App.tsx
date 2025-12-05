@@ -19,24 +19,31 @@ function App() {
     setError(null);
 
     try{
-      const res = await fetch('/api/search', {
+      const res = await fetch('http://localhost:3000/api/search', {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query })
+        body: JSON.stringify({ prompt: query })
       });
 
-      if (!res.ok) throw new Error("Error while searching, try again");
+      if (!res.ok) throw new Error("Error, try again");
 
       const data = await res.json();
-      setResults(data.places);
+      setResults(data.results);
       setStatus("success");
     }
     catch (err: any){
       setStatus("error");
       setError(err.message || "Error");
-
-      setResults([{name: "Lugar", description: "Descripcion", longitude: 4, latitude: 5}])
     }
+  }
+
+  const handleTypingAfterError = () => {
+    setStatus("idle");
+  }
+
+  const handleSearchAgain = () => {
+    setResults([]);
+    setStatus("idle");
   }
 
   return (
@@ -45,12 +52,15 @@ function App() {
       { results.length == 0 &&
         <SearchComponent
           onSearch={handleSearch}
+          onTypingAfterError={handleTypingAfterError}
           status={status}
           error={error}
         />
       }
       { results.length != 0 &&
-        <ResultsComponent results={results}/>
+        <ResultsComponent 
+        results={results}
+        onGoBack={handleSearchAgain}/>
       }
     </div>
   );

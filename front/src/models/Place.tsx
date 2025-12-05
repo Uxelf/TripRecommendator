@@ -1,23 +1,27 @@
 export class Place {
-    name: string;
-    description: string;
-    longitude: number;
-    latitude: number; 
+  name: string;
+  description: string;
+  longitude: number;
+  latitude: number;
+  image: string;
 
   constructor({
     name,
     description,
     longitude,
-    latitude
+    latitude,
+    image,
   }: {
     name: string;
     description: string;
     longitude: number;
-    latitude: number; 
+    latitude: number;
+    image: string;
   }) {
     this.name = name;
     this.description = description;
     this.longitude = longitude;
     this.latitude = latitude;
+    this.image = image;
   }
 }

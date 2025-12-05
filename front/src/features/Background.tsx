@@ -10,9 +10,9 @@ const backgrounds = [
 
 
 function BackgroundSwitcher(){
-    const intervalMs = 4 * 1000;
+    const intervalMs = 10 * 1000;
     const [currentBg, setCurrentBg] = useState(0);
-    const [nextBg, setNextBg] = useState<number>(0);
+    const [nextBg, setNextBg] = useState<number>(1);
     const [fade, setFade] = useState(false);
 
 
@@ -21,13 +21,13 @@ function BackgroundSwitcher(){
             setFade(true);
 
             const timeout1 = setTimeout(() => {
-            setCurrentBg(nextBg); // ⚡ correcto
+            setCurrentBg(nextBg);
             setFade(false);
-            }, 1000);
+            }, 4000);
 
             const timeout2 = setTimeout(() => {
-            setNextBg(prev => (prev + 1) % backgrounds.length); // ⚡ nunca se queda viejo
-            }, 2000);
+            setNextBg(prev => (prev + 1) % backgrounds.length);
+            }, 8000);
 
             return () => {
             clearTimeout(timeout1);
@@ -45,7 +45,7 @@ function BackgroundSwitcher(){
                 style={{ backgroundImage: `url(${backgrounds[currentBg]})` }}
             />
             <div
-            className={`h-full w-full bg-cover bg-center absolute top-0 left-0 transition-opacity duration-1000 ${
+            className={`h-full w-full bg-cover bg-center absolute top-0 left-0 transition-opacity duration-4000 ${
                 !fade ? "opacity-0" : "opacity-100"
             }`}
             style={{ backgroundImage: `url(${backgrounds[nextBg]})` }}
