@@ -4,10 +4,17 @@ services:
       build: ./front
       volumes:
         - ./front:/app
+        - /app/node_modules
       ports:
         - "5173:5173"
       environment:
         - NODE_ENV=development
 
-volumes:
-  node_modules:
+  back:
+    build: ./back
+    volumes:
+      - ./back:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    env_file: ".env"
