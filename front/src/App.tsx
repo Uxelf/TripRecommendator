@@ -1,13 +1,12 @@
-import { useState } from 'react'
-import './App.css'
-import BackgroundSwitcher from './features/Background';
-import type { Place } from './models/Place';
-import SearchComponent from './features/SearchComponent';
-import ResultsComponent from './features/ResultsComponent';
+import { useState } from "react";
+import "./App.css";
+import BackgroundSwitcher from "./features/Background";
+import type { Place } from "./models/Place";
+import SearchComponent from "./features/SearchComponent";
+import ResultsComponent from "./features/ResultsComponent";
 import "leaflet/dist/leaflet.css";
 
 function App() {
-
   type SearchStatus = "idle" | "loading" | "error" | "success";
 
   const [status, setStatus] = useState<SearchStatus>("idle");
@@ -18,53 +17,52 @@ function App() {
     setStatus("loading");
     setError(null);
 
-    try{
-      const res = await fetch('http://localhost:3000/api/search', {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: query })
-      });
+    try {
+      const res = await fetch(
+        `${window.location.protocol}//${window.location.hostname}:3000/api/search`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt: query }),
+        }
+      );
 
       if (!res.ok) throw new Error("Error, try again");
 
       const data = await res.json();
       setResults(data.results);
       setStatus("success");
-    }
-    catch (err: any){
+    } catch (err: any) {
       setStatus("error");
       setError(err.message || "Error");
     }
-  }
+  };
 
   const handleTypingAfterError = () => {
     setStatus("idle");
-  }
+  };
 
   const handleSearchAgain = () => {
     setResults([]);
     setStatus("idle");
-  }
+  };
 
   return (
     <div className="relative h-dvh w-dvw flex">
-      <BackgroundSwitcher/>
-      { results.length == 0 &&
+      <BackgroundSwitcher />
+      {results.length == 0 && (
         <SearchComponent
           onSearch={handleSearch}
           onTypingAfterError={handleTypingAfterError}
           status={status}
           error={error}
         />
-      }
-      { results.length != 0 &&
-        <ResultsComponent 
-        results={results}
-        onGoBack={handleSearchAgain}/>
-      }
+      )}
+      {results.length != 0 && (
+        <ResultsComponent results={results} onGoBack={handleSearchAgain} />
+      )}
     </div>
   );
-
 }
 
-export default App
+export default App;
