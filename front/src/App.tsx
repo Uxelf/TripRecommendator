@@ -48,19 +48,37 @@ function App() {
   };
 
   return (
-    <div className="relative h-dvh w-dvw flex">
+    <div className="relative h-dvh w-dvw overflow-hidden">
       <BackgroundSwitcher />
-      {results.length == 0 && (
-        <SearchComponent
-          onSearch={handleSearch}
-          onTypingAfterError={handleTypingAfterError}
-          status={status}
-          error={error}
-        />
-      )}
-      {results.length != 0 && (
-        <ResultsComponent results={results} onGoBack={handleSearchAgain} />
-      )}
+      
+        <div
+          className={`
+            h-dvh w-dvw flex absolute inset-0 transition-transform duration-500 
+            ${results.length === 0 ? "translate-x-0" : "-translate-x-full"} 
+            ${results.length === 0 ? "pointer-events-auto" : "pointer-events-none"}
+          `}
+          aria-hidden={results.length !== 0}
+        >
+          <SearchComponent
+            onSearch={handleSearch}
+            onTypingAfterError={handleTypingAfterError}
+            status={status}
+            error={error}
+            />
+            </div>
+    
+      
+        <div
+          className={`
+            h-dvh w-dvw flex  absolute inset-0 transition-transform duration-500 
+            ${results.length !== 0 ? "translate-x-0" : "translate-x-full"} 
+            ${results.length !== 0 ? "pointer-events-auto" : "pointer-events-none"}
+          `}
+          aria-hidden={results.length === 0}
+        >
+          <ResultsComponent results={results} onGoBack={handleSearchAgain} />
+        </div>
+      
     </div>
   );
 }

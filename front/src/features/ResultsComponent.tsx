@@ -4,7 +4,7 @@ import { MapContainer, Marker, Popup, TileLayer, ZoomControl } from 'react-leafl
 import L from "leaflet";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
 import PlaceCard from '../components/PlaceCard';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 const blueIcon = new L.Icon({
   iconUrl:
@@ -36,6 +36,16 @@ export default function ResultsComponent({results, onGoBack}: Props) {
     const [selectedPlaceIndex, setSelectedPlaceIndex] = useState<number>(-1)
     const markersRef = useRef<{ [key: string]: L.Marker }>({});
     const [hideResults, setHideResults] = useState<boolean>(false);
+    const [bufferResult, setBufferResult] = useState<Place[]>([{latitude: 0, longitude: 0, description: "", name: ""}])
+
+    useEffect(() => {
+        if (results && results.length > 0){
+            setBufferResult(results);
+            setSelectedPlaceIndex(-1);
+            mapRef.current?.panTo([results[0].latitude, results[0].longitude], {animate: false})
+        }
+    },
+    [results])
 
     const handleToggle = () => {
         setHideResults(!hideResults);
@@ -45,11 +55,11 @@ export default function ResultsComponent({results, onGoBack}: Props) {
         <div className='h-full w-full flex flex-col-reverse lg:flex-row bg-slate-950/80'>
             
             <div className="h-1/2 lg:h-full flex grow">
-                <MapContainer center={[results[0].latitude, results[0].longitude]} zoom={10} zoomControl={false}
+                <MapContainer center={[bufferResult[0].latitude, bufferResult[0].longitude]} zoom={10} zoomControl={false}
                 className='w-full h-full'
                 ref={mapRef}>
                     <ZoomControl position="bottomright" />
-                    <div className="absolute top-0 left-0 flex flex-col gap-2 p-4 z-1000 m-4 rounded-lg backdrop-blur-lg shadow-lg border border-white/50">
+                    <div className="absolute top-0 left-0 flex flex-col gap-2 p-4 z-1000 m-4 rounded-lg backdrop-blur-lg shadow-lg border border-white/50" id="places_panel">
                         <button
                         className="
                             text-lg cursor-pointer px-4 py-2 rounded-lg bg-gray-800 text-gray-100 
@@ -79,9 +89,12 @@ export default function ResultsComponent({results, onGoBack}: Props) {
                         <div className={`flex flex-col gap-2 px-1 transition-all duration-300 overflow-hidden ${hideResults ? 'max-h-0 py-0' : 'max-h-96 py-1'}`}>
 
                         {
-                            results.map((place, index) => (
+                            bufferResult.map((place, index) => (
                                 <PlaceCard place={place} mapRef={mapRef} selected={selectedPlaceIndex == index} key={"place_" + index} disabled={hideResults}
-                                onClick={() => {setSelectedPlaceIndex(index);
+                                onClick={() => {
+                                    if (selectedPlaceIndex != -1)
+                                        markersRef.current[selectedPlaceIndex]?.closePopup();
+                                    setSelectedPlaceIndex(index);
                                     const marker = markersRef.current[index];
                                     if (marker) marker.openPopup();
                                 }} />
@@ -94,7 +107,7 @@ export default function ResultsComponent({results, onGoBack}: Props) {
                     attribution="&copy; OpenStreetMap contributors"
                     />
                     {
-                        results.map((place, index) => (
+                        bufferResult.map((place, index) => (
                             <Marker
                             position={[place.latitude, place.longitude]}
                             icon={selectedPlaceIndex == index ? redIcon : blueIcon}
@@ -107,7 +120,7 @@ export default function ResultsComponent({results, onGoBack}: Props) {
                             eventHandlers={{
                                 click: () => {setSelectedPlaceIndex(index)}
                             }}>
-                                <Popup autoPan={true} autoPanPaddingTopLeft={[0, 200]}>
+                                <Popup autoPan={true} autoClose={false} closeOnClick={false}>
                                     <div className='flex flex-col gap-4'>
                                         <h1 className='text-center text-4xl font-semibold'>{place.name}</h1>
                                         <div className='text-lg'>{place.description}</div>

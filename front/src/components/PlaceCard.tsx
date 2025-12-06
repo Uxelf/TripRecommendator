@@ -1,6 +1,6 @@
 import { type RefObject } from 'react';
 import type { Place } from '../models/Place'
-import type { LatLngTuple, ZoomPanOptions } from 'leaflet';
+import type { ZoomPanOptions } from 'leaflet';
 
 interface Props{
     place: Place,
@@ -16,8 +16,10 @@ export default function PlaceCard({place, mapRef, onClick, selected, disabled}: 
     const goToPlace = () => {
         if (mapRef.current == null)
             return;
-        const coords: LatLngTuple = [place.latitude, place.longitude];
-        mapRef.current.flyTo(coords, 10, options);
+        /* const panelHeight = document.getElementById("places_panel")?.offsetHeight ?? 0;
+        const offset = mapRef.current.containerPointToLatLng([0, panelHeight]).lat -
+                 mapRef.current.containerPointToLatLng([0, 0]).lat; */
+        mapRef.current.flyTo([place.latitude + 0.2, place.longitude], 10, options);
         onClick();
     }
 

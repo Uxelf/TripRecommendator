@@ -10,19 +10,24 @@ app.use(cors({
 
 const ai = new GoogleGenAI({apiKey: process.env.GEMINI_API_KEY});
 
-const searchPrompt = `Search the internet for up to 4 places that match the user's description, prioritizing the most popular or well-known locations.
+const searchPrompt = `You must return only a valid, plain JSON object.
+Find up to 4 places that match the user's description, prioritizing the most popular ones.
+Each place must match exactly the structure of the following class:
 
-For each place, provide:
-- name: the official name of the place
-- description: a short, accurate description (2-3 sentences)
-- longitude: geographic longitude
-- latitude: geographic latitude
+class Place {
+  name: string;
+  description: string;
+  longitude: number;
+  latitude: number;
+}
 
-Return the response strictly in valid JSON format, with an array called "results" containing up to 4 objects using exactly these variable names: name, description, longitude, latitude, image.
-
-Return ONLY the raw JSON object.
-
-Give the name and description in the same languaje as the user description.
+Requirements:
+- Output must contain a single top-level object with an array called "results".
+- "results" must contain between 1 and 4 objects of type Place.
+- "description" must be brief but precise (2-3 sentences).
+- All text fields must use the same language in which the user wrote the description.
+- Coordinates must be real and plausible.
+- Return only the JSON. No explanations, no formatting, no extra text.
 
 The user's description is: `
 
@@ -30,14 +35,11 @@ app.listen(3000, () => {
   console.log("API listening on port 3000");
 });
 
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 app.post("/api/search", async (req, res) => {
     try {
         const { prompt } = req.body;
         if (!prompt) return res.status(400).json({ error: "No se recibió prompt" });
 
-        /* await sleep(20000);
-        throw new Error(`Error intencional después de ${delay} ms`); */
 
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
@@ -56,14 +58,16 @@ app.post("/api/search", async (req, res) => {
 })
 
 
-function extractJSONFromText(text) {
-    if (typeof text !== "string") return null;
-    // Remove typical code fences and leading/trailing backticks/tags
-    text = text.replace(/```[a-zA-Z]*\n?/g, "").replace(/```/g, "").trim();
+function stripCodeFences(text) {
+  if (!text || typeof text !== "string") return text;
 
-    // Find the first {...} JSON object block (greedy to last })
-    const match = text.match(/\{[\s\S]*\}/);
-    return match ? match[0].trim() : null;
+  // Remove leading fences like ``` or ```json
+  text = text.trim().replace(/^```[a-zA-Z]*\s*\n?/, "");
+
+  // Remove trailing ```
+  text = text.replace(/\n?```$/, "");
+
+  return text.trim();
 }
 
 function validateAIResponse(raw) {
@@ -74,9 +78,9 @@ function validateAIResponse(raw) {
         data = raw;
     } else if (typeof raw === "string") {
         // try to extract JSON block if fences/prefixes exist
-        const extracted = extractJSONFromText(raw) || raw;
+        const cleaned = stripCodeFences(raw) || raw;
         try {
-            data = JSON.parse(extracted);
+            data = JSON.parse(cleaned);
         } catch (err) {
             return { valid: false, error: "Invalid JSON format (parse error)." , rawText: raw};
         }
